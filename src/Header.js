@@ -9,11 +9,11 @@ export default class Header extends PureComponent {
         <hr className="my-1" />
         <Row>
           <Col sm="12" lg="9">
-            <h1 className="display-5">Neural modeling</h1>
+            <h1 className="display-5 text-white">Neural modeling</h1>
           </Col>
           <Col sm="12" lg="3">
             <Button
-              color="info"
+              color="danger"
               size="lg"
               block
               href="https://github.com/Arthur-Lazarenko/neural-modeling"
@@ -23,7 +23,7 @@ export default class Header extends PureComponent {
             </Button>
           </Col>
         </Row>
-        <p className="lead">Моделирование нейронной активности.</p>
+        <p className="lead text-white">Моделирование нейронной активности.</p>
         <hr className="my-1" />
       </div>
     );
