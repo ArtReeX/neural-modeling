@@ -1,18 +1,25 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Card, CardBody, CardTitle } from "reactstrap";
+import {
+  Card,
+  CardBody,
+  CardTitle,
+  Input,
+  InputGroup,
+  InputGroupAddon
+} from "reactstrap";
 import brainjs from "brain.js";
 
 const configField = {
-  backgroundUrl: "fon.jpg",
-  width: 2000,
-  height: 1000
+  backgroundUrl: "fon.jpg"
 };
 
 export default class Field extends Component {
   constructor(props) {
     super(props);
+
+    this.state = { height: 1000, width: 2000 };
 
     this.fieldRef = React.createRef();
 
@@ -65,7 +72,7 @@ export default class Field extends Component {
     canvas = this.fieldRef.current,
     backgroundImage = this.backgroundImage
   ) {
-    const { height, width } = configField;
+    const { height, width } = this.state;
     canvas.getContext("2d").drawImage(backgroundImage, 0, 0, width, height);
   }
   renderField(canvas = this.fieldRef.current) {
@@ -84,41 +91,37 @@ export default class Field extends Component {
 
     layersWeights.forEach((layerWeights, layerIndex) => {
       layerWeights.forEach((weight, weightIndex) => {
-        const xOffset = configField.width / layersWeights.length / 4;
-        const yOffset = configField.height / layerWeights.length / 4;
+        const xOffset = this.state.width / layersWeights.length / 4;
+        const yOffset = this.state.height / layerWeights.length / 4;
         const xPosition =
-          (configField.width / layersWeights.length) * layerIndex + xOffset;
+          (this.state.width / layersWeights.length) * layerIndex + xOffset;
         const yPosition =
-          (configField.height / layerWeights.length) * weightIndex + yOffset;
-        const radius = (Math.abs(weight) * Math.min(xOffset, yOffset)) / 2;
+          (this.state.height / layerWeights.length) * weightIndex + yOffset;
+        const radius = Math.max(
+          (Math.abs(weight) * Math.min(xOffset, yOffset)) / 2,
+          Math.min(xOffset, yOffset) / 2
+        );
         const fillStyle =
           weight <= 0 ? "rgba(255,45,84,255)" : "rgba(0,255,147,255)";
-
-        // веса
-        context.beginPath();
-        context.arc(xPosition, yPosition, radius, 0, Math.PI * 2, false);
-        context.closePath();
-        context.strokeStyle = "rgba(255,255,255,255)";
-        context.lineWidth = 1;
-        context.fillStyle = fillStyle;
-        context.fill();
-        context.stroke();
+        context.lineWidth =
+          Math.min(this.state.width, this.state.height) /
+          layerWeights.length /
+          100;
 
         // соединители
         context.beginPath();
         context.strokeStyle =
           weight <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)";
-        context.lineWidth = 1;
         if (layerIndex + 1 < layersWeights.length) {
           layersWeights[layerIndex + 1].forEach((weight, weightIndex) => {
-            const xOffsetNext = configField.width / layersWeights.length / 4;
+            const xOffsetNext = this.state.width / layersWeights.length / 4;
             const yOffsetNext =
-              configField.height / layersWeights[layerIndex + 1].length / 4;
+              this.state.height / layersWeights[layerIndex + 1].length / 4;
             const xPositionNext =
-              (configField.width / layersWeights.length) * (layerIndex + 1) +
+              (this.state.width / layersWeights.length) * (layerIndex + 1) +
               xOffsetNext;
             const yPositionNext =
-              (configField.height / layersWeights[layerIndex + 1].length) *
+              (this.state.height / layersWeights[layerIndex + 1].length) *
                 weightIndex +
               yOffsetNext;
 
@@ -129,38 +132,58 @@ export default class Field extends Component {
         context.stroke();
         context.closePath();
 
-        /*
-              const xConcatPrev =
-                (configField.width / layersWeights.length) * layerIndex +
-                configField.width / layersWeights.length / 2;
-              const xConcatNext =
-                (configField.width / layersWeights.length) * layerIndex -
-                configField.width / layersWeights.length / 2;
-              const yConcat = configField.height / 2;
-      
-              context.beginPath();
-              context.strokeStyle = "rgba(255,255,255,255)";
-              context.lineWidth = 1;
-              context.moveTo(xPosition, yPosition);
-              context.lineTo(xConcatPrev, yConcat);
-              context.moveTo(xPosition, yPosition);
-              context.lineTo(xConcatNext, yConcat);
-              context.stroke();
-              */
+        // веса
+        context.beginPath();
+        context.arc(xPosition, yPosition, radius, 0, Math.PI * 2, false);
+        context.closePath();
+        context.strokeStyle = "rgba(255,255,255,255)";
+        context.fillStyle = fillStyle;
+        context.fill();
+        context.stroke();
       });
     });
   }
   render() {
-    const { height, width } = configField;
     return (
       <Card className="m-3" body outline color="secondary">
         <CardTitle className="text-center">Модель развития</CardTitle>
         <hr className="my-1" />
+        <InputGroup>
+          <InputGroupAddon addonType="prepend">Высота</InputGroupAddon>
+          <Input
+            style={{ fontSize: "10px" }}
+            type="number"
+            placeholder="****"
+            defaultValue="1000"
+            onChange={value => {
+              this.setState({ height: value.target.value });
+              this.renderBackgroundToField(
+                this.fieldRef.current,
+                this.backgroundImage
+              );
+            }}
+          />
+          <InputGroupAddon addonType="prepend">Ширина</InputGroupAddon>
+          <Input
+            style={{ fontSize: "10px" }}
+            type="number"
+            placeholder="****"
+            defaultValue="3000"
+            onChange={value => {
+              this.setState({ width: value.target.value });
+              this.renderBackgroundToField(
+                this.fieldRef.current,
+                this.backgroundImage
+              );
+            }}
+          />
+        </InputGroup>
+        <hr className="my-1" />
         <CardBody>
           <canvas
             ref={this.fieldRef}
-            height={height}
-            width={width}
+            height={this.state.height}
+            width={this.state.width}
             style={{
               width: "100%"
             }}

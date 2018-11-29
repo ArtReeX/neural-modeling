@@ -91,7 +91,7 @@ export default class Panel extends Component {
                 type="text"
                 innerRef={this.hiddenLayersRef}
                 placeholder="[*, *, *, ...]"
-                defaultValue="[10, 5, 8, 20]"
+                defaultValue="[10, 5, 8, 15, 5]"
               />
             </FormGroup>
             <FormGroup hidden>
