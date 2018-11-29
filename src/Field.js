@@ -91,8 +91,8 @@ export default class Field extends Component {
 
     layersWeights.forEach((layerWeights, layerIndex) => {
       layerWeights.forEach((weight, weightIndex) => {
-        const xOffset = this.state.width / layersWeights.length / 4;
-        const yOffset = this.state.height / layerWeights.length / 4;
+        const xOffset = this.state.width / layersWeights.length / 2;
+        const yOffset = this.state.height / layerWeights.length / 2;
         const xPosition =
           (this.state.width / layersWeights.length) * layerIndex + xOffset;
         const yPosition =
@@ -114,9 +114,9 @@ export default class Field extends Component {
           weight <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)";
         if (layerIndex + 1 < layersWeights.length) {
           layersWeights[layerIndex + 1].forEach((weight, weightIndex) => {
-            const xOffsetNext = this.state.width / layersWeights.length / 4;
+            const xOffsetNext = this.state.width / layersWeights.length / 2;
             const yOffsetNext =
-              this.state.height / layersWeights[layerIndex + 1].length / 4;
+              this.state.height / layersWeights[layerIndex + 1].length / 2;
             const xPositionNext =
               (this.state.width / layersWeights.length) * (layerIndex + 1) +
               xOffsetNext;
