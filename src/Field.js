@@ -9,6 +9,14 @@ export default class Field extends Component {
     super(props);
 
     this.fieldRef = React.createRef();
+
+    this.renderBackgroundToField = this.renderBackgroundToField.bind(this);
+
+    this.backgroundImage = new Image();
+    this.backgroundImage.src = "fon.jpg";
+  }
+  componentDidMount() {
+    this.renderBackgroundToField(this.fieldRef.current, this.backgroundImage);
   }
   start(data, iterations, errorThresh, hiddenLayers) {
     const {
@@ -35,8 +43,27 @@ export default class Field extends Component {
       }
     });
   }
+  renderBackgroundToField(
+    canvas = this.fieldRef.current,
+    backgroundImage = this.backgroundImage
+  ) {
+    this.backgroundImage = new Image();
+    this.backgroundImage.src = "fon.jpg";
+    this.backgroundImage.onload = () => {
+      canvas.getContext("2d").drawImage(backgroundImage, 0, 0, 1000, 1000);
+    };
+  }
   renderField(canvas = this.fieldRef.current) {
-    const context = canvas.getContext("2d");
+    const {
+      model: { hiddenLayers }
+    } = this.brain;
+    const weights = hiddenLayers.map(layer => layer.outputBias.weights);
+
+    console.log("Нейронная сеть", this.brain);
+    console.log("Скрытые слои", hiddenLayers);
+    console.log("Веса", weights);
+
+    this.renderBackgroundToField(this.fieldRef.current, this.backgroundImage);
   }
   render() {
     return (
@@ -44,7 +71,14 @@ export default class Field extends Component {
         <CardTitle className="text-center">Модель развития</CardTitle>
         <hr className="my-1" />
         <CardBody>
-          <canvas ref={this.fieldRef} height="1000" width="1000" />
+          <canvas
+            ref={this.fieldRef}
+            height="1000"
+            width="1000"
+            style={{
+              width: "100%"
+            }}
+          />
         </CardBody>
       </Card>
     );
