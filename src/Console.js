@@ -15,7 +15,7 @@ export default class Console extends Component {
     const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 
     this.setState({
-      console: `${this.state.console}\n${time} - ${event}`.trim()
+      console: `${time} - ${event}\n${this.state.console}`.trim()
     });
   }
   componentWillMount() {

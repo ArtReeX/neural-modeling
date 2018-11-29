@@ -53,7 +53,7 @@ export default class Field extends Component {
             this.renderField(this.fieldRef.current);
           }
         });
-      }, Math.max(Math.max(hiddenLayers) * hiddenLayers.length * 50, 1000));
+      }, Math.max(Math.max.apply(null, hiddenLayers) * hiddenLayers.length, 100));
     } catch (error) {
       this.props.error(error.message);
     }
@@ -106,7 +106,8 @@ export default class Field extends Component {
 
         // соединители
         context.beginPath();
-        context.strokeStyle = "rgba(255,255,255,255)";
+        context.strokeStyle =
+          weight <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)";
         context.lineWidth = 1;
         if (layerIndex + 1 < layersWeights.length) {
           layersWeights[layerIndex + 1].forEach((weight, weightIndex) => {
