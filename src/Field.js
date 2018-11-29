@@ -4,68 +4,153 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Card, CardBody, CardTitle } from "reactstrap";
 import brainjs from "brain.js";
 
+const configField = {
+  backgroundUrl: "fon.jpg",
+  width: 2000,
+  height: 1000
+};
+
 export default class Field extends Component {
   constructor(props) {
     super(props);
 
     this.fieldRef = React.createRef();
 
+    this.startTrain = this.startTrain.bind(this);
+    this.stopTrain = this.stopTrain.bind(this);
     this.renderBackgroundToField = this.renderBackgroundToField.bind(this);
 
     this.backgroundImage = new Image();
-    this.backgroundImage.src = "fon.jpg";
+    this.backgroundImage.src = configField.backgroundUrl;
+    this.backgroundImage.onload = () => {
+      this.renderBackgroundToField(this.fieldRef.current, this.backgroundImage);
+    };
   }
-  componentDidMount() {
-    this.renderBackgroundToField(this.fieldRef.current, this.backgroundImage);
+  startTrain(data, iterations, errorThresh, activation, hiddenLayers) {
+    try {
+      const {
+        current: { addInfoToConsole }
+      } = this.props.console;
+
+      addInfoToConsole("Нейронная сеть перезапущена с новыми параметрами.");
+
+      this.brain = new brainjs.recurrent.LSTM({
+        hiddenLayers: hiddenLayers,
+        activation: activation
+      });
+
+      this.training = setInterval(() => {
+        this.brain.train(data, {
+          iterations: 1 /*iterations*/,
+          errorThresh: errorThresh,
+          log: event => addInfoToConsole(event),
+          logPeriod: 10,
+          learningRate: 0.3,
+          momentum: 0.1,
+          callbackPeriod: 10,
+          timeout: null,
+          callback: () => {
+            this.renderField(this.fieldRef.current);
+          }
+        });
+      }, Math.max(hiddenLayers) * hiddenLayers.length * 50);
+    } catch (error) {
+      this.props.error(error.message);
+    }
   }
-  start(data, iterations, errorThresh, hiddenLayers) {
-    const {
-      current: { addInfoToConsole }
-    } = this.props.console;
-
-    addInfoToConsole("Нейронная сеть перезапущена с новыми параметрами.");
-
-    this.brain = new brainjs.recurrent.LSTM({
-      hiddenLayers: hiddenLayers
-    });
-
-    this.brain.train(data, {
-      iterations: iterations,
-      errorThresh: errorThresh,
-      log: event => addInfoToConsole(event),
-      logPeriod: 10,
-      learningRate: 0.3,
-      momentum: 0.1,
-      callbackPeriod: 10,
-      timeout: null,
-      callback: () => {
-        this.renderField(this.fieldRef.current);
-      }
-    });
+  stopTrain() {
+    clearInterval(this.training);
   }
   renderBackgroundToField(
     canvas = this.fieldRef.current,
     backgroundImage = this.backgroundImage
   ) {
-    this.backgroundImage = new Image();
-    this.backgroundImage.src = "fon.jpg";
-    this.backgroundImage.onload = () => {
-      canvas.getContext("2d").drawImage(backgroundImage, 0, 0, 1000, 1000);
-    };
+    const { height, width } = configField;
+    canvas.getContext("2d").drawImage(backgroundImage, 0, 0, width, height);
   }
   renderField(canvas = this.fieldRef.current) {
     const {
       model: { hiddenLayers }
     } = this.brain;
-    const weights = hiddenLayers.map(layer => layer.outputBias.weights);
+    const layersWeights = hiddenLayers.map(layer => layer.outputBias.weights);
 
     console.log("Нейронная сеть", this.brain);
     console.log("Скрытые слои", hiddenLayers);
-    console.log("Веса", weights);
+    console.log("Веса", layersWeights);
 
     this.renderBackgroundToField(this.fieldRef.current, this.backgroundImage);
+
+    const context = canvas.getContext("2d");
+
+    layersWeights.forEach((layerWeights, layerIndex) => {
+      layerWeights.forEach((weight, weightIndex) => {
+        const xOffset = configField.width / layersWeights.length / 4;
+        const yOffset = configField.height / layerWeights.length / 4;
+        const xPosition =
+          (configField.width / layersWeights.length) * layerIndex + xOffset;
+        const yPosition =
+          (configField.height / layerWeights.length) * weightIndex + yOffset;
+        const radius = (Math.abs(weight) * Math.min(xOffset, yOffset)) / 2;
+        const fillStyle =
+          weight <= 0 ? "rgba(255,45,84,255)" : "rgba(0,255,147,255)";
+
+        // веса
+        context.beginPath();
+        context.arc(xPosition, yPosition, radius, 0, Math.PI * 2, false);
+        context.closePath();
+        context.strokeStyle = "rgba(255,255,255,255)";
+        context.lineWidth = 1;
+        context.fillStyle = fillStyle;
+        context.fill();
+        context.stroke();
+
+        // соединители
+        context.beginPath();
+        context.strokeStyle = "rgba(255,255,255,255)";
+        context.lineWidth = 1;
+        if (layerIndex + 1 < layersWeights.length) {
+          layersWeights[layerIndex + 1].forEach((weight, weightIndex) => {
+            const xOffsetNext = configField.width / layersWeights.length / 4;
+            const yOffsetNext =
+              configField.height / layersWeights[layerIndex + 1].length / 4;
+            const xPositionNext =
+              (configField.width / layersWeights.length) * (layerIndex + 1) +
+              xOffsetNext;
+            const yPositionNext =
+              (configField.height / layersWeights[layerIndex + 1].length) *
+                weightIndex +
+              yOffsetNext;
+
+            context.moveTo(xPosition, yPosition);
+            context.lineTo(xPositionNext, yPositionNext);
+          });
+        }
+        context.stroke();
+        context.closePath();
+
+        /*
+              const xConcatPrev =
+                (configField.width / layersWeights.length) * layerIndex +
+                configField.width / layersWeights.length / 2;
+              const xConcatNext =
+                (configField.width / layersWeights.length) * layerIndex -
+                configField.width / layersWeights.length / 2;
+              const yConcat = configField.height / 2;
+      
+              context.beginPath();
+              context.strokeStyle = "rgba(255,255,255,255)";
+              context.lineWidth = 1;
+              context.moveTo(xPosition, yPosition);
+              context.lineTo(xConcatPrev, yConcat);
+              context.moveTo(xPosition, yPosition);
+              context.lineTo(xConcatNext, yConcat);
+              context.stroke();
+              */
+      });
+    });
   }
   render() {
+    const { height, width } = configField;
     return (
       <Card className="m-3" body outline color="secondary">
         <CardTitle className="text-center">Модель развития</CardTitle>
@@ -73,8 +158,8 @@ export default class Field extends Component {
         <CardBody>
           <canvas
             ref={this.fieldRef}
-            height="1000"
-            width="1000"
+            height={height}
+            width={width}
             style={{
               width: "100%"
             }}
@@ -88,7 +173,8 @@ export default class Field extends Component {
 Field.propTypes = {
   console: PropTypes.shape({
     current: PropTypes.shape({
-      addInfoToConsole: PropTypes.func
+      addInfoToConsole: PropTypes.func,
+      error: PropTypes.func.isRequired
     })
   })
 };

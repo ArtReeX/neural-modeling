@@ -10,27 +10,47 @@ import {
   Button,
   CardTitle,
   CardText,
-  Input
+  CardBody,
+  Input,
+  Badge
 } from "reactstrap";
 
 export default class Panel extends Component {
   constructor(props) {
     super(props);
 
+    this.state = { startTrainHidden: false, stopTrainHidden: true };
+
     this.iterationsRef = React.createRef();
     this.errorThreshRef = React.createRef();
+    this.activationRef = React.createRef();
     this.hiddenLayersRef = React.createRef();
     this.dataRef = React.createRef();
 
-    this.reCreateBrain = this.reCreateBrain.bind(this);
+    this.startTrain = this.startTrain.bind(this);
+    this.stopTrain = this.stopTrain.bind(this);
   }
-  reCreateBrain() {
-    this.props.reCreateBrain(
+  startTrain() {
+    this.setState({
+      startTrainHidden: true,
+      stopTrainHidden: false
+    });
+
+    this.props.startTrain(
       this.dataRef.current.value,
       this.iterationsRef.current.value,
       this.errorThreshRef.current.value,
+      this.activationRef.current.value,
       this.hiddenLayersRef.current.value
     );
+  }
+  stopTrain() {
+    this.setState({
+      startTrainHidden: false,
+      stopTrainHidden: true
+    });
+
+    this.props.stopTrain();
   }
   render() {
     return (
@@ -71,10 +91,10 @@ export default class Panel extends Component {
                 type="text"
                 innerRef={this.hiddenLayersRef}
                 placeholder="[*, *, *, ...]"
-                defaultValue="[20, 10, 5]"
+                defaultValue="[10, 5, 8, 20]"
               />
             </FormGroup>
-            <FormGroup>
+            <FormGroup hidden>
               <Label for="iterations" className="small">
                 Количество итераций обучения
               </Label>
@@ -84,6 +104,18 @@ export default class Panel extends Component {
                 innerRef={this.iterationsRef}
                 placeholder="10"
                 defaultValue="50"
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="iterations" className="small">
+                Функция активации
+              </Label>
+              <Input
+                style={{ fontSize: "10px" }}
+                type="text"
+                innerRef={this.activationRef}
+                placeholder="sigmoid/relu/leaky-relu/tanh"
+                defaultValue="sigmoid"
               />
             </FormGroup>
             <FormGroup>
@@ -104,7 +136,29 @@ export default class Panel extends Component {
         <Card className="text-center" body inverse color="dark">
           <CardTitle>Запуск</CardTitle>
           <CardText>Запустить обучение</CardText>
-          <Button onClick={this.reCreateBrain}>Начать</Button>
+          <CardBody>
+            <h2>
+              Обучение производится в нейронной сети на основе{" "}
+              <Badge color="light">LSTM</Badge>
+            </h2>{" "}
+            <small>– сети долгой краткосрочной памяти</small>
+          </CardBody>
+          <Button
+            className="m-1"
+            color="success"
+            hidden={this.state.startTrainHidden}
+            onClick={this.startTrain}
+          >
+            Начать
+          </Button>
+          <Button
+            className="m-1"
+            color="danger"
+            hidden={this.state.stopTrainHidden}
+            onClick={this.stopTrain}
+          >
+            Остановить
+          </Button>
         </Card>
       </CardDeck>
     );
@@ -112,5 +166,6 @@ export default class Panel extends Component {
 }
 
 Panel.propTypes = {
-  reCreateBrain: PropTypes.func.isRequired
+  startTrain: PropTypes.func.isRequired,
+  stopTrain: PropTypes.func.isRequired
 };
