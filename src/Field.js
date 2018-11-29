@@ -98,8 +98,8 @@ export default class Field extends Component {
         const yPosition =
           (this.state.height / layerWeights.length) * weightIndex + yOffset;
         const radius = Math.max(
-          (Math.abs(weight) * Math.min(xOffset, yOffset)) / 2,
-          Math.min(xOffset, yOffset) / 2
+          (Math.abs(weight) * Math.min(xOffset, yOffset)) / 4,
+          Math.min(xOffset, yOffset) / 10
         );
         const fillStyle =
           weight <= 0 ? "rgba(255,45,84,255)" : "rgba(0,255,147,255)";
@@ -168,7 +168,7 @@ export default class Field extends Component {
             style={{ fontSize: "10px" }}
             type="number"
             placeholder="****"
-            defaultValue="3000"
+            defaultValue="2000"
             onChange={value => {
               this.setState({ width: value.target.value });
               this.renderBackgroundToField(
