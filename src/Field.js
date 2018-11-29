@@ -53,7 +53,7 @@ export default class Field extends Component {
             this.renderField(this.fieldRef.current);
           }
         });
-      }, Math.max(hiddenLayers) * hiddenLayers.length * 50);
+      }, Math.max(Math.max(hiddenLayers) * hiddenLayers.length * 50, 1000));
     } catch (error) {
       this.props.error(error.message);
     }
