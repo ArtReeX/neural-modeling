@@ -108,11 +108,12 @@ export default class Field extends Component {
           100;
 
         // связи между нейронами
-        context.beginPath();
-        context.strokeStyle =
-          weight <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)";
+
         if (layerIndex + 1 < layersWeights.length) {
           layersWeights[layerIndex + 1].forEach((weightNext, weightIndex) => {
+            context.beginPath();
+            context.strokeStyle =
+              weight <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)";
             const xOffsetNext = this.state.width / layersWeights.length / 2;
             const yOffsetNext =
               this.state.height / layersWeights[layerIndex + 1].length / 2;
@@ -141,10 +142,10 @@ export default class Field extends Component {
             context.strokeStyle = gradient;
             context.moveTo(xPosition, yPosition);
             context.lineTo(xPositionNext, yPositionNext);
+            context.stroke();
+            context.closePath();
           });
         }
-        context.stroke();
-        context.closePath();
 
         // нейроны
         context.beginPath();
@@ -155,6 +156,7 @@ export default class Field extends Component {
         context.fillStyle = fillStyle;
         context.fill();
         context.stroke();
+        context.closePath();
       });
     });
   }
