@@ -79,7 +79,28 @@ export default class Field extends Component {
     const {
       model: { hiddenLayers }
     } = this.brain;
-    const layersWeights = hiddenLayers.map(layer => layer.outputBias.weights);
+
+    const layersWeights = [];
+    for (
+      let layerIndex = 0;
+      layerIndex < hiddenLayers.length;
+      layerIndex += 1
+    ) {
+      const layer = hiddenLayers[layerIndex];
+      const weights = [];
+      for (
+        let weightIndex = 0;
+        weightIndex < layer.cellActivationBias.weights.length;
+        weightIndex += 1
+      ) {
+        weights.push({
+          input: layer.inputBias.weights[weightIndex],
+          activation: layer.cellActivationBias.weights[weightIndex],
+          output: layer.outputBias.weights[weightIndex]
+        });
+      }
+      layersWeights.push(weights);
+    }
 
     console.log("Нейронная сеть", this.brain);
     console.log("Скрытые слои", hiddenLayers);
@@ -96,24 +117,16 @@ export default class Field extends Component {
           (this.state.width / layersWeights.length) * layerIndex + xOffset;
         const yPosition =
           (this.state.height / layerWeights.length) * weightIndex + yOffset;
-        const radius = Math.max(
-          (Math.abs(weight) * Math.min(xOffset, yOffset)) / 4,
-          Math.min(xOffset, yOffset) / 10
-        );
-        const fillStyle =
-          weight <= 0 ? "rgba(255,45,84,255)" : "rgba(0,255,147,255)";
         context.lineWidth =
           Math.min(this.state.width, this.state.height) /
           layerWeights.length /
           100;
 
         // связи между нейронами
-
         if (layerIndex + 1 < layersWeights.length) {
           layersWeights[layerIndex + 1].forEach((weightNext, weightIndex) => {
             context.beginPath();
-            context.strokeStyle =
-              weight <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)";
+
             const xOffsetNext = this.state.width / layersWeights.length / 2;
             const yOffsetNext =
               this.state.height / layersWeights[layerIndex + 1].length / 2;
@@ -133,11 +146,15 @@ export default class Field extends Component {
             );
             gradient.addColorStop(
               0.0,
-              weight <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)"
+              weight.output < weight.activation
+                ? "rgba(0,0,0,255)"
+                : "rgba(255,255,255,255)"
             );
             gradient.addColorStop(
               1.0,
-              weightNext <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)"
+              weightNext.input < weightNext.activation
+                ? "rgba(0,0,0,255)"
+                : "rgba(255,255,255,255)"
             );
             context.strokeStyle = gradient;
             context.moveTo(xPosition, yPosition);
@@ -148,11 +165,22 @@ export default class Field extends Component {
         }
 
         // нейроны
+        const radius = Math.max(
+          (Math.abs(weight.activation) * Math.min(xOffset, yOffset)) / 4,
+          Math.min(xOffset, yOffset) / 10
+        );
+        const fillStyle =
+          weight.output < weight.activation
+            ? "rgba(255,45,84,255)"
+            : "rgba(0,255,147,255)";
+        const strokeStyle =
+          weight.output < weight.activation
+            ? "rgba(0,0,0,255)"
+            : "rgba(255,255,255,255)";
         context.beginPath();
         context.arc(xPosition, yPosition, radius, 0, Math.PI * 2, false);
         context.closePath();
-        context.strokeStyle =
-          weight <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)";
+        context.strokeStyle = strokeStyle;
         context.fillStyle = fillStyle;
         context.fill();
         context.stroke();
