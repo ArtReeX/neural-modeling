@@ -86,7 +86,6 @@ export default class Field extends Component {
     console.log("Веса", layersWeights);
 
     this.renderBackgroundToField(this.fieldRef.current, this.backgroundImage);
-
     const context = canvas.getContext("2d");
 
     layersWeights.forEach((layerWeights, layerIndex) => {
@@ -132,11 +131,11 @@ export default class Field extends Component {
               yPositionNext
             );
             gradient.addColorStop(
-              0,
+              0.0,
               weight <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)"
             );
             gradient.addColorStop(
-              1,
+              1.0,
               weightNext <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)"
             );
             context.strokeStyle = gradient;
@@ -151,7 +150,8 @@ export default class Field extends Component {
         context.beginPath();
         context.arc(xPosition, yPosition, radius, 0, Math.PI * 2, false);
         context.closePath();
-        context.strokeStyle = "rgba(255,255,255,255)";
+        context.strokeStyle =
+          weight <= 0 ? "rgba(0,0,0,255)" : "rgba(255,255,255,255)";
         context.fillStyle = fillStyle;
         context.fill();
         context.stroke();
